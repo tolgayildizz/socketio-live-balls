@@ -1,0 +1,14 @@
+{
+  "name": "socketio-live-balls",
+  "description": "",
+  "main": "",
+  "authors": [
+    "yildiztolgaa <yildiztolgaa@gmail.com>"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/tolgayildizz/socketio-live-balls",
+  "dependencies": {
+    "angular": "^1.7.7",
+    "semantic": "^2.4.1"
+  }
+}
