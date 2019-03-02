@@ -7,6 +7,11 @@ socketApi.io = io; //Obje içerisinde ki io metoduna socketi bağladık
 
 const users = {}; //Kullanıcıların toplanacağı değişken
 
+//Helper metodunu dahil ettik
+
+const randomColor = require('../helpers/randomColor');
+
+
 //Bağlantıyı yakaladık
 io.on('connection', (socket) => {
     console.log('a user connected');
@@ -18,7 +23,8 @@ io.on('connection', (socket) => {
             position: {
                 x: 0,
                 y: 0
-            }
+            },
+            color: randomColor(), //Rastgele bir renk verdik
         }
         //defaultData referansı ile gelen datayı eşitledik
         const userData = Object.assign(data, defaultData);

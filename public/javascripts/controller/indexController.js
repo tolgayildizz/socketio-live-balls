@@ -70,7 +70,7 @@ app.controller('indexController', ['$scope', 'indexFactory', ($scope, indexFacto
 
             //Diğer kıullanıcıların konumunun değiştirilmesi
             socket.on('animate', data => {
-                $('#'+data.socketId).animate({'left':data.x, 'top':data.y}, ()=> {
+                $('#'+data.socketId).animate({'left':data.x +'px', 'top':data.y + 'px'}, ()=> {
                     animate=false;
                 });
 
