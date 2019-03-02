@@ -5,7 +5,7 @@ const socketApi = {}; //Bir obje oluşturduk
 
 socketApi.io = io; //Obje içerisinde ki io metoduna socketi bağladık
 
-const users = []; //Kullanıcıların toplanacağı değişken
+const users = {}; //Kullanıcıların toplanacağı değişken
 
 //Bağlantıyı yakaladık
 io.on('connection', (socket) => {
@@ -22,8 +22,33 @@ io.on('connection', (socket) => {
         }
         //defaultData referansı ile gelen datayı eşitledik
         const userData = Object.assign(data, defaultData);
-        //users arrayine userData'yı ekledik
-        users.push(userData);
+        //users değişeknine userData'yı ekledik
+        users[socket.id] = userData;
+        //Diğer kullanıcılara giriş yapan kişinin bilgilerini döndürme
+        socket.broadcast.emit('newUser', users[socket.id]);
+        //Yeni kullanıcıya diğer kullanıcı bilgilerini ve oyun haritasını göndermek
+        socket.emit('initPlayers', users);
+    });
+
+    //Kullanıcı ayrıldığında soketten yakaladık
+    socket.on('disconnect', ()=>{
+        //Diğer kullanıcılara ayrılan kullanıcının bilgisini ilettik
+        socket.broadcast.emit('disUser', users[socket.id]);
+        //ayrılan kullanıcıları kullanıcılar objesinden sildik
+        delete users[socket.id];
+    });
+
+    //Konum bilgilerinin paylaşılması
+    socket.on('animate', (data) => {
+        //Kullanının konum bilgisinin değiştirilmesi
+        users[socket.id].position.x = data.x;
+        users[socket.id].position.y = data.y;
+        //Diğer kullanıcılara konumun iletilmesi
+        socket.broadcast.emit('animate', {
+            socketId: socket.id,
+            x:data.x,
+            y:data.y, 
+        });
     });
 });
 
