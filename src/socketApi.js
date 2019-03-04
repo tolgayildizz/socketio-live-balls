@@ -46,7 +46,8 @@ io.on('connection', (socket) => {
 
     //Konum bilgilerinin paylaşılması
     socket.on('animate', (data) => {
-        //Kullanının konum bilgisinin değiştirilmesi
+       try {
+            //Kullanının konum bilgisinin değiştirilmesi
         users[socket.id].position.x = data.x;
         users[socket.id].position.y = data.y;
         //Diğer kullanıcılara konumun iletilmesi
@@ -55,11 +56,16 @@ io.on('connection', (socket) => {
             x:data.x,
             y:data.y, 
         });
+       } 
+        catch (error) {
+        console.log(error)
+       }
     });
 
     //Mesajların iletilmesi
     socket.on('newMessage', (data)=> {
-        socket.broadcast.emit('newMessage',data);
+        const messageData = Object.assign({socketId: socket.id},data);
+        socket.broadcast.emit('newMessage',messageData);
     })
 });
 

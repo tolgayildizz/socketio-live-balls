@@ -22,24 +22,23 @@ app.controller('indexController', ['$scope', 'indexFactory', ($scope, indexFacto
 
     //Mesajların top üzerinde gösterilmesi
     function showBubble(id, message) {
-		$('#'+ id).find('.message').show().html(message);
+        $('#' + id).find('.message').show().html(message);
         console.log(message)
-		setTimeout(() => {
-			$('#'+ id).find('.message').hide();
-		},2000);
-	}
+        setTimeout(() => {
+            $('#' + id).find('.message').hide();
+        }, 2000);
+    }
 
 
-    function initSocket(username) {
+    async function initSocket(username) {
         //Socket ayarlarını yaptık
         const options = {
             reconnectionAttemps: 3, //Yeniden bağlanma girişimi sayısı
             reconnectionDelay: 600 //Kaç saniyede bir yeniden bağlanmayı denesin
         };
-
-        //IndexFactory den connectSocket fonksiuonuna eriştik
-        indexFactory.connectSocket('http://localhost:3000/', options).then((socket) => {
-            console.log('Bağlantı Gerçekleşti'); //Bağlantı gerçekleşti
+        try {
+            //IndexFactory den connectSocket fonksiuonuna eriştik
+            const socket = await indexFactory.connectSocket('http://localhost:3000/', options);
             socket.emit('newUser', {
                 username
             }); //Yeni kullanıcıyı sokete emit ettik
@@ -68,6 +67,7 @@ app.controller('indexController', ['$scope', 'indexFactory', ($scope, indexFacto
                 $scope.players[data.id] = data;
                 //scope'u onayladık
                 $scope.$apply();
+                scrollTop();
             });
 
             //Kullanıcı çıkış işleminin gösterilmesi
@@ -85,11 +85,15 @@ app.controller('indexController', ['$scope', 'indexFactory', ($scope, indexFacto
                 $scope.messages.push(messageData);
                 //scope'u onayladık
                 $scope.$apply();
+                scrollTop();
             });
 
             //Diğer kıullanıcıların konumunun değiştirilmesi
             socket.on('animate', data => {
-                $('#' + data.socketId).animate({ 'left': data.x + 'px', 'top': data.y + 'px' }, () => {
+                $('#' + data.socketId).animate({
+                    'left': data.x + 'px',
+                    'top': data.y + 'px'
+                }, () => {
                     animate = false;
                 });
 
@@ -102,10 +106,16 @@ app.controller('indexController', ['$scope', 'indexFactory', ($scope, indexFacto
                 let x = $event.offsetX;
                 let y = $event.offsetY;
                 //Konumun sokete iletilmesi
-                socket.emit('animate', { x, y });
+                socket.emit('animate', {
+                    x,
+                    y
+                });
                 //Animasyonun gerçekleşmesi
                 if (!animate) {
-                    $('#' + socket.id).animate({ 'left': x, 'top': y }, () => {
+                    $('#' + socket.id).animate({
+                        'left': x,
+                        'top': y
+                    }, () => {
                         animate = false;
                     });
                 }
@@ -129,21 +139,23 @@ app.controller('indexController', ['$scope', 'indexFactory', ($scope, indexFacto
                 $scope.messages.push(messageData);
                 //mesaj kutusunu sıfırladık
                 $scope.message = '';
-                showBubble(socket.id,message);
+                showBubble(socket.id, message);
                 scrollTop();
-                //scope u onayladık
                 // $scope.$apply();
-                
+
             }
             //Mesajların tüm kullanıcılara gösterilmesi
             socket.on('newMessage', (data) => {
                 $scope.messages.push(data);
                 //scope u onayladık
                 $scope.$apply();
+                //Mesaj balonunu gösterdik
+                showBubble(data.socketId, data.text);
                 scrollTop();
             });
-        }).catch((err) => {
-            console.log(err); //Bağlantı gerçekleşmedi
-        });
+        }
+        catch(e) {
+            console.log(e);
+        }
     }
 }]);
