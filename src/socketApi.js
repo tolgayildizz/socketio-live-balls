@@ -56,6 +56,11 @@ io.on('connection', (socket) => {
             y:data.y, 
         });
     });
+
+    //Mesajların iletilmesi
+    socket.on('newMessage', (data)=> {
+        socket.broadcast.emit('newMessage',data);
+    })
 });
 
 //Objeyi dışarı aktardık

@@ -11,6 +11,25 @@ app.controller('indexController', ['$scope', 'indexFactory', ($scope, indexFacto
             return false;
     };
 
+    //Mesajların scroll düzenini sağlaması gereken fonksiyon
+    function scrollTop() {
+        setTimeout(() => {
+            //Mesaj alanını seçtik
+            const element = document.getElementById('chat-area');
+            element.scrollTop = element.scrollHeight;
+        });
+    }
+
+    //Mesajların top üzerinde gösterilmesi
+    function showBubble(id, message) {
+		$('#'+ id).find('.message').show().html(message);
+        console.log(message)
+		setTimeout(() => {
+			$('#'+ id).find('.message').hide();
+		},2000);
+	}
+
+
     function initSocket(username) {
         //Socket ayarlarını yaptık
         const options = {
@@ -26,7 +45,7 @@ app.controller('indexController', ['$scope', 'indexFactory', ($scope, indexFacto
             }); //Yeni kullanıcıyı sokete emit ettik
 
             //Oyun alanındaki kullanıcıların karşılanması
-            socket.on('initPlayers',(players)=>{
+            socket.on('initPlayers', (players) => {
                 //Kullanıcı bilgilerini scope a aktardık
                 $scope.players = players;
                 //Scope'u onayladık
@@ -46,7 +65,7 @@ app.controller('indexController', ['$scope', 'indexFactory', ($scope, indexFacto
                 //Mesajları messages dizisine ekledik
                 $scope.messages.push(messageData);
                 //Yeni oyuncunun topunu alana ekledik
-                $scope.players[data.id]=data;
+                $scope.players[data.id] = data;
                 //scope'u onayladık
                 $scope.$apply();
             });
@@ -70,8 +89,8 @@ app.controller('indexController', ['$scope', 'indexFactory', ($scope, indexFacto
 
             //Diğer kıullanıcıların konumunun değiştirilmesi
             socket.on('animate', data => {
-                $('#'+data.socketId).animate({'left':data.x +'px', 'top':data.y + 'px'}, ()=> {
-                    animate=false;
+                $('#' + data.socketId).animate({ 'left': data.x + 'px', 'top': data.y + 'px' }, () => {
+                    animate = false;
                 });
 
             })
@@ -79,18 +98,50 @@ app.controller('indexController', ['$scope', 'indexFactory', ($scope, indexFacto
             //Animasyonun bitmeden çalışmaması için değişken oluşturduk
             let animate = false;
             //Top konumunun alınması
-            $scope.onClickPlayer= ($event) => {
+            $scope.onClickPlayer = ($event) => {
                 let x = $event.offsetX;
                 let y = $event.offsetY;
                 //Konumun sokete iletilmesi
-                socket.emit('animate', {x,y});
+                socket.emit('animate', { x, y });
                 //Animasyonun gerçekleşmesi
-                if(!animate) {
-                    $('#' + socket.id).animate({'left':x,'top':y}, ()=> {
+                if (!animate) {
+                    $('#' + socket.id).animate({ 'left': x, 'top': y }, () => {
                         animate = false;
                     });
                 }
+            };
+
+            //Mesaj yazma fonksiyonu 
+            $scope.newMessage = () => {
+                let message = $scope.message;
+                console.log(message)
+                //Defaul mesajData oluşturduk
+                const messageData = {
+                    type: { //info type
+                        code: 1, //SERVER or USER message
+                    },
+                    username: username,
+                    text: message,
+                };
+                //Mesajları emit ettik
+                socket.emit('newMessage', messageData);
+                //Mesajları messages dizisine ekledik
+                $scope.messages.push(messageData);
+                //mesaj kutusunu sıfırladık
+                $scope.message = '';
+                showBubble(socket.id,message);
+                scrollTop();
+                //scope u onayladık
+                // $scope.$apply();
+                
             }
+            //Mesajların tüm kullanıcılara gösterilmesi
+            socket.on('newMessage', (data) => {
+                $scope.messages.push(data);
+                //scope u onayladık
+                $scope.$apply();
+                scrollTop();
+            });
         }).catch((err) => {
             console.log(err); //Bağlantı gerçekleşmedi
         });
