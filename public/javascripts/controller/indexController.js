@@ -1,4 +1,4 @@
-app.controller('indexController', ['$scope', 'indexFactory', ($scope, indexFactory) => {
+app.controller('indexController', ['$scope', 'indexFactory', 'configFactory', ($scope, indexFactory, configFactory) => {
 
     $scope.messages = [] //mesaj datalarının tutulduğu array
 
@@ -23,7 +23,6 @@ app.controller('indexController', ['$scope', 'indexFactory', ($scope, indexFacto
     //Mesajların top üzerinde gösterilmesi
     function showBubble(id, message) {
         $('#' + id).find('.message').show().html(message);
-        console.log(message)
         setTimeout(() => {
             $('#' + id).find('.message').hide();
         }, 2000);
@@ -37,8 +36,10 @@ app.controller('indexController', ['$scope', 'indexFactory', ($scope, indexFacto
             reconnectionDelay: 600 //Kaç saniyede bir yeniden bağlanmayı denesin
         };
         try {
+            //Soket url i ni configFactory den aldık
+            const socketUrl = await configFactory.getConfig();
             //IndexFactory den connectSocket fonksiuonuna eriştik
-            const socket = await indexFactory.connectSocket('http://localhost:3000/', options);
+            const socket = await indexFactory.connectSocket(socketUrl.data.socketUrl, options);
             socket.emit('newUser', {
                 username
             }); //Yeni kullanıcıyı sokete emit ettik
@@ -124,7 +125,6 @@ app.controller('indexController', ['$scope', 'indexFactory', ($scope, indexFacto
             //Mesaj yazma fonksiyonu 
             $scope.newMessage = () => {
                 let message = $scope.message;
-                console.log(message)
                 //Defaul mesajData oluşturduk
                 const messageData = {
                     type: { //info type
